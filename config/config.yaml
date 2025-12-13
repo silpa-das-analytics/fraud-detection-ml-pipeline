@@ -1,0 +1,82 @@
+# Fraud Detection Pipeline Configuration
+
+# Data Paths
+data:
+  raw_path: "data/raw"
+  bronze_path: "data/bronze/transactions"
+  silver_path: "data/processed/transactions_silver"
+  gold_path: "data/curated/transactions_gold"
+
+# Ingestion Settings
+ingestion:
+  file_format: "csv"
+  partition_by: "ingestion_date"
+  batch_size: 10000
+  enable_checkpointing: true
+
+# ETL Configuration
+etl:
+  # Bronze to Silver
+  remove_duplicates: true
+  validate_schema: true
+  quality_threshold: 0.95  # Min acceptable data quality score
+
+  # Feature Engineering
+  lookback_windows:
+    - 3600    # 1 hour in seconds
+    - 86400   # 24 hours
+    - 604800  # 7 days
+
+# Model Training
+model:
+  algorithm: "xgboost"
+  test_size: 0.15
+  validation_size: 0.15
+  random_state: 42
+
+  # Class Imbalance Handling
+  imbalance_strategy: "smote"  # Options: smote, weights, none
+  smote_sampling_strategy: 0.5
+
+  # XGBoost Hyperparameters
+  xgboost_params:
+    max_depth: 6
+    learning_rate: 0.1
+    n_estimators: 200
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_weight: 1
+    gamma: 0.1
+    early_stopping_rounds: 20
+
+  # Performance Thresholds
+  min_precision: 0.80
+  min_recall: 0.70
+  min_f1: 0.75
+
+# Spark Configuration
+spark:
+  app_name: "FraudDetectionPipeline"
+  driver_memory: "4g"
+  executor_memory: "4g"
+  shuffle_partitions: 8
+  default_parallelism: 8
+
+# Logging
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  log_to_file: true
+  log_dir: "logs"
+
+# Monitoring
+monitoring:
+  enable_mlflow: true
+  mlflow_tracking_uri: "file:./mlruns"
+  enable_prometheus: false
+
+# API Settings
+api:
+  host: "0.0.0.0"
+  port: 8000
+  reload: false
+  workers: 4
